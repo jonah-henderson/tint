@@ -1,0 +1,69 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Colour {
+  RED
+  ORANGE
+  YELLOW
+  GREEN
+  BLUE
+  PURPLE
+}
+
+model Board {
+  id       String    @id @default(uuid())
+  name     String    @db.VarChar(255)
+  colour   Colour    @default(BLUE)
+  lists    List[]
+  projects Project[]
+  tags     Tag[]
+}
+
+model List {
+  id      String @id @default(uuid())
+  name    String @db.VarChar(255)
+  board   Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  boardId String
+  index   Int
+  cards   Card[]
+}
+
+model Card {
+  id          String  @id @default(uuid())
+  summary     String  @db.VarChar(255)
+  description String  @db.LongText
+  list        List    @relation(fields: [listId], references: [id], onDelete: Cascade)
+  listId      String
+  tags        Tag[]
+  project     Project @relation(fields: [projectId], references: [id])
+  projectId   String
+  readableId  Int
+  index       Int
+}
+
+model Tag {
+  id      String @id @default(uuid())
+  name    String @db.VarChar(255)
+  colour  Colour
+  cards   Card[]
+  board   Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  boardId String
+}
+
+model Project {
+  id         String @id @default(uuid())
+  name       String @db.VarChar(255)
+  cards      Card[]
+  nextCardId Int    @default(1)
+  board      Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  boardId    String
+}
